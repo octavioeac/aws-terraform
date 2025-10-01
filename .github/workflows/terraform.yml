@@ -1,23 +1,44 @@
 name: terraform-min
 on:
-  push: { branches: [ "main" ] }
+  push:
+    branches: [ "main" ]
   workflow_dispatch: {}
 
 jobs:
   apply:
     runs-on: ubuntu-latest
-    permissions: { id-token: write, contents: read }   # OIDC
+    permissions:
+      id-token: write   # necesario para OIDC
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
-      - uses: hashicorp/setup-terraform@v3
-        with: { terraform_version: 1.6.6 }
+      # --- Ver los claims OIDC (sub) para validar contra la trust policy ---
+      - name: Debug OIDC claims
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y jq
+          RAW=$(curl -sLS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com")
+          TOKEN=$(echo "$RAW" | jq -r '.value')
+          echo "::group::OIDC claims"
+          echo "$TOKEN" | awk -F '.' '{print $2}' | base64 -d | jq .
+          echo "::endgroup::"
 
+      # --- Asumir el rol en AWS con OIDC ---
       - name: Configure AWS creds (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
+
+      # --- (opcional) Verifica que asumiste el rol ---
+      - name: Who am I
+        run: aws sts get-caller-identity
+
+      # --- Terraform ---
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
 
       - name: Terraform Init
         working-directory: infra
