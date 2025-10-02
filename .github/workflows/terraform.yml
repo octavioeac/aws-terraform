@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  BUCKET_NAME: "terraform-test"   # cámbialo por uno único
+  BUCKET_NAME: "terraform-test-us-east-2"   # cámbialo por uno único
   AWS_REGION:  "us-east-2"
 
 permissions:
