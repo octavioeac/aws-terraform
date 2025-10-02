@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  BUCKET_NAME: "terraform-test-us-east-2"   # cámbialo por uno único
+  BUCKET_NAME: "terraform-test-us-east-2"
   AWS_REGION:  "us-east-2"
 
 permissions:
@@ -44,6 +44,12 @@ jobs:
               aws s3api create-bucket --bucket "$BUCKET_NAME" \
                 --create-bucket-configuration LocationConstraint="$AWS_REGION"
             fi
+          fi
+
+      - name: Ensure index.html exists (demo)
+        run: |
+          if [ ! -f index.html ]; then
+            echo '<!doctype html><html><body><h1>Hello from GitHub Actions</h1></body></html>' > index.html
           fi
 
       - name: Copy index.html to S3
