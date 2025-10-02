@@ -1,63 +1,50 @@
-name: terraform-min
+name: AWS example workflow
+
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: {}
+  workflow_dispatch:
+
+env:
+  BUCKET_NAME: "BUCKET-NAME"   # cámbialo por uno único
+  AWS_REGION:  "us-east-2"
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  apply:
+  S3PackageUpload:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Git clone the repository
+        uses: actions/checkout@v5
 
-      # --- Ver los claims OIDC ---
-      - name: Debug OIDC claims
-        run: |
-          sudo apt-get update -y && sudo apt-get install -y jq
-          RAW=$(curl -sLS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com")
-          TOKEN=$(echo "$RAW" | jq -r '.value')
-          echo "::group::OIDC claims"
-          echo "$TOKEN" | awk -F '.' '{print $2}' | base64 -d | jq .
-          echo "::endgroup::"
-
-      # --- STS directo para depurar ---
-      - name: Direct STS assume-role-with-web-identity (debug)
-        env:
-          ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-        run: |
-          RAW=$(curl -sLS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com")
-          TOKEN=$(echo "$RAW" | jq -r '.value')
-          echo "::group::STS response"
-          aws sts assume-role-with-web-identity \
-            --role-arn "$ROLE_ARN" \
-            --role-session-name gha-debug \
-            --web-identity-token "$TOKEN" \
-            --duration-seconds 900 || true
-          echo "::endgroup::"
-
-      # --- OIDC -> credenciales AWS ---
-      - name: Configure AWS creds (OIDC)
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+          role-session-name: samplerolesession
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Who am I
-        run: aws sts get-caller-identity
+      # Crea el bucket si no existe (idempotente)
+      - name: Ensure bucket exists
+        env:
+          BUCKET_NAME: ${{ env.BUCKET_NAME }}
+          AWS_REGION:  ${{ env.AWS_REGION }}
+        run: |
+          set -e
+          if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+            echo "Bucket $BUCKET_NAME already exists"
+          else
+            echo "Creating bucket $BUCKET_NAME in $AWS_REGION..."
+            if [ "$AWS_REGION" = "us-east-1" ]; then
+              aws s3api create-bucket --bucket "$BUCKET_NAME"
+            else
+              aws s3api create-bucket --bucket "$BUCKET_NAME" \
+                --create-bucket-configuration LocationConstraint="$AWS_REGION"
+            fi
+          fi
 
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.6
-
-      - name: Terraform Init
-        working-directory: infra
-        run: terraform init -input=false
-
-      - name: Terraform Apply (auto)
-        working-directory: infra
-        run: terraform apply -auto-approve -input=false
+      - name: Copy index.html to S3
+        run: aws s3 cp ./index.html "s3://${{ env.BUCKET_NAME }}/"
