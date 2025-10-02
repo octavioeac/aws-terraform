@@ -1,0 +1,105 @@
+# -------------------------
+# OS / genéricos
+# -------------------------
+.DS_Store
+Thumbs.db
+Icon?
+Desktop.ini
+
+# -------------------------
+# Editores/IDEs
+# -------------------------
+.idea/
+.project
+.classpath
+.settings/
+.vscode/
+*.code-workspace
+.history/
+
+# -------------------------
+# Logs / temporales
+# -------------------------
+*.log
+logs/
+*.tmp
+*.swp
+*.swo
+
+# -------------------------
+# Java / Maven (Spring Boot)
+# -------------------------
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+!.mvn/wrapper/MavenWrapperDownloader.java
+
+# Archivos generados por compilación/empacado local
+*.iml
+*.class
+*.war
+*.ear
+
+# -------------------------
+# Node.js (si usas la carpeta nodejs/)
+# -------------------------
+node_modules/
+dist/
+build/
+coverage/
+.nyc_output/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+.eslintcache
+
+# Frameworks comunes (por si aplican)
+.next/
+.nuxt/
+.svelte-kit/
+vite.svg
+vite.config.ts.timestamp-*
+
+# -------------------------
+# Terraform
+# -------------------------
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.tfvars
+*.tfvars.json
+*.tfplan
+*.plan
+plan.out
+terraform.tfplan
+.terraformrc
+terraform.rc
+
+# ¡Importante! no ignores el lock file (debe quedarse en el repo)
+!**/.terraform.lock.hcl
+
+# -------------------------
+# Artefactos/paquetes locales (ej. ZIP para Lambda)
+# -------------------------
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+# Si empaquetas lambda localmente en la raíz:
+app.zip
+lambda*.zip
+
+# -------------------------
+# Otros
+# -------------------------
+.env
+.env.*
+*.bak
