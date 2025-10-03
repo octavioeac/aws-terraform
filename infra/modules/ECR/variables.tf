@@ -1,25 +1,25 @@
 variable "region" {
-    type = string 
-    description = "Region of the project"
-    default = "us-east-2" 
+  type        = string
+  description = "Region of the project"
+  default     = "us-east-2"
 }
 
 variable "name-ecr-node" {
-    type = string 
-    description = "Name ECR to create NodeJS Backend"
-    default = "node-aws-backend"
+  type        = string
+  description = "Name ECR to create NodeJS Backend"
+  default     = "node-aws-backend"
 }
 
 variable "name-ecr-java" {
-    type = string
-    description = "Name ECT to create Java Backend"
-    default = "java-aws-backend"
+  type        = string
+  description = "Name ECT to create Java Backend"
+  default     = "java-aws-backend"
 }
 
 variable "name-ecr-python" {
-    type = string
-    description = "Name ECT to create Python Backend"
-    default = "python-aws-backend"
+  type        = string
+  description = "Name ECT to create Python Backend"
+  default     = "python-aws-backend"
 }
 
 variable "kms_key_arn" {
