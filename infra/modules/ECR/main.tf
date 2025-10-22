@@ -8,3 +8,9 @@ resource "aws_ecr_repository" "aws_ecr_repository_node" {
   name         = var.name-ecr-node
   force_delete = var.ecr_force_delete
 }
+
+
+resource "aws_ecr_repository" "aws_ecr_repository_python" {
+  name         = var.name-ecr-node
+  force_delete = var.ecr_force_delete
+}

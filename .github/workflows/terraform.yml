@@ -93,9 +93,9 @@ jobs:
         id: tf
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
-          echo "ECR_NODE_URL=$(terraform output -raw ecr_node_url)" >> $GITHUB_OUTPUT
-          echo "ECR_PY_URL=$(terraform output -raw ecr_py_url)" >> $GITHUB_OUTPUT
-          echo "ECR_JAVA_URL=$(terraform output -raw ecr_java_url)" >> $GITHUB_OUTPUT
+          echo "ECR_NODE_URL=$(terraform output -raw aws_ecr_repository_node)" >> $GITHUB_OUTPUT
+          echo "ECR_PY_URL=$(terraform output -raw aws_ecr_repository_python)" >> $GITHUB_OUTPUT
+          echo "ECR_JAVA_URL=$(terraform output -raw aws_ecr_repository_java)" >> $GITHUB_OUTPUT
 
       - name: Login to ECR
         run: |
