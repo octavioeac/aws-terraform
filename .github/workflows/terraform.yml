@@ -88,3 +88,47 @@ jobs:
       - name: Terraform apply
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -input=false -auto-approve
+
+      - name: Get ECR Repository URLs
+        id: tf
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          echo "ECR_NODE_URL=$(terraform output -raw ecr_node_url)" >> $GITHUB_OUTPUT
+          echo "ECR_PY_URL=$(terraform output -raw ecr_py_url)" >> $GITHUB_OUTPUT
+          echo "ECR_JAVA_URL=$(terraform output -raw ecr_java_url)" >> $GITHUB_OUTPUT
+
+      - name: Login to ECR
+        run: |
+          ACCOUNT_URI=$(echo "${{ steps.tf.outputs.ECR_NODE_URL }}" | cut -d'/' -f1)
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} \
+            | docker login --username AWS --password-stdin $ACCOUNT_URI
+
+      # --- NodeJS image ---
+      - name: Build & Push NodeJS Image
+        run: |
+          docker build -t ${{ steps.tf.outputs.ECR_NODE_URL }}:latest \
+            -f app/nodejs/node-aws-backend/Dockerfile app/nodejs/node-aws-backend
+          docker push ${{ steps.tf.outputs.ECR_NODE_URL }}:latest
+
+      # --- Python image ---
+      - name: Build & Push Python Image
+        run: |
+          docker build -t ${{ steps.tf.outputs.ECR_PY_URL }}:latest \
+            -f app/python/python-aws-backend/Dockerfile app/python/python-aws-backend
+          docker push ${{ steps.tf.outputs.ECR_PY_URL }}:latest
+
+      # --- Java image ---
+      - name: Build & Push Java Image
+        run: |
+          docker build -t ${{ steps.tf.outputs.ECR_JAVA_URL }}:latest \
+            -f app/java/Dockerfile app/java
+          docker push ${{ steps.tf.outputs.ECR_JAVA_URL }}:latest
+
+      # --------------------------
+      #  Artifact Summary
+      # --------------------------
+      - name: Show Pushed Images
+        run: |
+          echo "<----- Node image:  ${{ steps.tf.outputs.ECR_NODE_URL }}:latest ------>"
+          echo "<----- Python image:${{ steps.tf.outputs.ECR_PY_URL }}:latest ------>"
+          echo "<----- Java image:  ${{ steps.tf.outputs.ECR_JAVA_URL }}:latest  ------>"
