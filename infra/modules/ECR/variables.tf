@@ -52,3 +52,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "ecr_force_delete" {
+  type    = bool
+  default = true
+}
